@@ -53,26 +53,6 @@ jobs:
             exit 1
           fi
 
-      - name: Embed entitlements for sideloading
-        run: |
-          APP_PATH=$(find "$PWD/build" -name "*.app" -maxdepth 2 | head -1)
-          BINARY="$APP_PATH/Stip"
-          echo "App: $APP_PATH"
-          echo "Binary: $BINARY"
-
-          # Copy entitlements into the .app bundle (for tools that read it)
-          cp Stip/Stip.entitlements "$APP_PATH/archived-expanded-entitlements.xcent"
-          cp Stip/Stip.entitlements "$APP_PATH/Stip.entitlements"
-
-          # Install ldid to pseudo-sign the binary WITH entitlements baked in.
-          # Sideloadly reads entitlements from the binary signature to determine
-          # which capabilities (HealthKit) to register with Apple's servers.
-          brew install ldid
-          ldid -SStip/Stip.entitlements "$BINARY"
-          echo "Entitlements pseudo-signed into binary successfully"
-
-          # Verify entitlements were embedded
-          ldid -e "$BINARY" || echo "Verification skipped"
 
       - name: Package into IPA
         run: |
