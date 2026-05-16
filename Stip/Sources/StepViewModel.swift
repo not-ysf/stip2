@@ -1,5 +1,5 @@
 import Foundation
-import HealthKit
+import CoreMotion
 import SwiftUI
 
 @MainActor
@@ -22,9 +22,8 @@ final class StepViewModel: ObservableObject {
     let dailyGoal = 2000
 
     // MARK: - Dependencies
-    private let healthStore   = HKHealthStore()
+    private let pedometer     = CMPedometer()
     private let streakManager = StreakManager()
-    private let stepType      = HKQuantityType.quantityType(forIdentifier: .stepCount)!
 
     // MARK: - Computed
     var progress: Double       { min(Double(todaySteps) / Double(dailyGoal), 1.0) }
@@ -34,125 +33,85 @@ final class StepViewModel: ObservableObject {
 
     init() {
         personalBest = UserDefaults.standard.integer(forKey: "stip.personalBest")
-        // Check health auth status immediately so background delivery can be set up
-        checkHealthKitAuthorizationStatus()
     }
 
-    // MARK: - Check existing auth (no dialog — called on every launch)
+    // MARK: - Check auth (called from onAppear)
     func checkHealthKitAuthorizationStatus() {
-        guard HKHealthStore.isHealthDataAvailable() else {
+        guard CMPedometer.isStepCountingAvailable() else {
             authStatus = "unavailable"
             return
         }
-        // Always request authorization — it's a no-op if already granted,
-        // and shows the dialog if not yet determined.
-        requestHealthKitAuthorization()
+        let status = CMPedometer.authorizationStatus()
+        switch status {
+        case .authorized:
+            isAuthorized = true
+            authStatus = "authorized"
+            refreshAll()
+        case .denied, .restricted:
+            isAuthorized = false
+            authStatus = "denied"
+        default:
+            // .notDetermined — querying will trigger the permission dialog
+            requestHealthKitAuthorization()
+        }
     }
 
-    // MARK: - Request auth (shows the system dialog on first call)
+    // MARK: - Request auth (triggers the Motion & Fitness dialog)
     func requestHealthKitAuthorization() {
-        guard HKHealthStore.isHealthDataAvailable() else {
+        guard CMPedometer.isStepCountingAvailable() else {
             authStatus = "unavailable"
             return
         }
-        let readTypes: Set<HKObjectType> = [stepType]
-        healthStore.requestAuthorization(toShare: nil, read: readTypes) { [weak self] success, error in
+        // Querying pedometer data automatically triggers the permission dialog
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        pedometer.queryPedometerData(from: start, to: Date()) { [weak self] data, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 if let error = error {
-                    print("HealthKit auth error: \(error.localizedDescription)")
-                    self.authStatus = "denied"
+                    print("Pedometer error: \(error.localizedDescription)")
                     self.isAuthorized = false
+                    self.authStatus = "denied"
                     return
                 }
-                // requestAuthorization "success" only means the dialog was shown
-                // (or was already shown before). It does NOT mean the user tapped Allow.
-                // The only way to know if we can read is to actually try a fetch.
-                self.probeHealthKitAccess()
+                self.isAuthorized = true
+                self.authStatus = "authorized"
+                self.refreshAll()
             }
         }
     }
 
-    // MARK: - Probe fetch to verify read access
-    // Attempts a small fetch. If we get data (or at least no error), we're in.
-    private func probeHealthKitAccess() {
-        let cal   = Calendar.current
-        let start = cal.startOfDay(for: Date())
-        let predicate = HKQuery.predicateForSamples(
-            withStart: start, end: Date(), options: .strictStartDate)
-        let query = HKStatisticsQuery(
-            quantityType: stepType,
-            quantitySamplePredicate: predicate,
-            options: .cumulativeSum
-        ) { [weak self] _, stats, error in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                if error != nil {
-                    // Query failed — user likely denied access
-                    self.isAuthorized = false
-                    self.authStatus = "denied"
-                } else {
-                    // Query succeeded (stats may be nil if 0 steps, that's fine)
-                    self.isAuthorized = true
-                    self.authStatus = "authorized"
-                    self.setupBackgroundDelivery()
-                    self.refreshAll()
-                }
-            }
-        }
-        healthStore.execute(query)
-    }
-
-    // MARK: - Background Delivery
-    private func setupBackgroundDelivery() {
-        let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completionHandler, error in
-            if error == nil {
-                Task { @MainActor [weak self] in
-                    self?.refreshAll()
-                }
-            }
-            completionHandler()
-        }
-        healthStore.execute(query)
-        
-        healthStore.enableBackgroundDelivery(for: stepType, frequency: .hourly) { success, error in
-            if let error = error {
-                print("Failed to enable background delivery: \(error)")
-            }
-        }
-    }
-
-    // MARK: - Refresh all data from HealthKit
+    // MARK: - Refresh all data
     func refreshAll() {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard CMPedometer.isStepCountingAvailable() else { return }
         fetchToday()
         fetchYesterday()
         fetchWeekTotal()
         fetchWeekDaily()
-        fetchPeriod(.month) { [weak self] v in Task { @MainActor [weak self] in self?.monthSteps = v } }
-        fetchPeriod(.year)  { [weak self] v in Task { @MainActor [weak self] in self?.yearSteps  = v } }
+        fetchPeriod(days: 30)  { [weak self] v in Task { @MainActor [weak self] in self?.monthSteps = v } }
+        fetchPeriod(days: 365) { [weak self] v in Task { @MainActor [weak self] in self?.yearSteps  = v } }
+        startLiveUpdates()
     }
 
-    // MARK: - Today
-    private func fetchToday() {
-        let cal   = Calendar.current
-        let start = cal.startOfDay(for: Date())
-        fetchSum(from: start, to: Date()) { [weak self] count in
+    // MARK: - Live updates (foreground)
+    private func startLiveUpdates() {
+        let cal = Calendar.current
+        let startOfToday = cal.startOfDay(for: Date())
+        pedometer.startUpdates(from: startOfToday) { [weak self] data, error in
+            guard let data = data, error == nil else { return }
+            let count = data.numberOfSteps.intValue
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.todaySteps = count
 
-                // Update personal best
                 if count > self.personalBest {
                     self.personalBest = count
                     UserDefaults.standard.set(count, forKey: "stip.personalBest")
                 }
 
-                // Update streak
                 self.streakManager.update(todaySteps: count, goal: self.dailyGoal)
                 self.streakCount = self.streakManager.currentStreak
 
-                // Fire all smart notifications
                 NotificationManager.shared.evaluateAndSchedule(
                     todaySteps:    count,
                     yesterdaySteps: self.yesterdaySteps,
@@ -165,13 +124,41 @@ final class StepViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Yesterday (needed for comeback notification)
+    // MARK: - Today
+    private func fetchToday() {
+        let cal   = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        fetchSteps(from: start, to: Date()) { [weak self] count in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.todaySteps = count
+
+                if count > self.personalBest {
+                    self.personalBest = count
+                    UserDefaults.standard.set(count, forKey: "stip.personalBest")
+                }
+
+                self.streakManager.update(todaySteps: count, goal: self.dailyGoal)
+                self.streakCount = self.streakManager.currentStreak
+
+                NotificationManager.shared.evaluateAndSchedule(
+                    todaySteps:    count,
+                    yesterdaySteps: self.yesterdaySteps,
+                    goal:          self.dailyGoal,
+                    streakCount:   self.streakManager.currentStreak,
+                    personalBest:  self.personalBest,
+                    weekDaily:     self.weekDaily
+                )
+            }
+        }
+    }
+
+    // MARK: - Yesterday
     private func fetchYesterday() {
-        let cal = Calendar.current
+        let cal   = Calendar.current
         let today = cal.startOfDay(for: Date())
-        guard let yStart = cal.date(byAdding: .day, value: -1, to: today),
-              let yEnd   = cal.date(byAdding: .day, value:  1, to: yStart) else { return }
-        fetchSum(from: yStart, to: yEnd) { [weak self] count in
+        guard let yStart = cal.date(byAdding: .day, value: -1, to: today) else { return }
+        fetchSteps(from: yStart, to: today) { [weak self] count in
             Task { @MainActor [weak self] in self?.yesterdaySteps = count }
         }
     }
@@ -181,7 +168,7 @@ final class StepViewModel: ObservableObject {
         let cal   = Calendar.current
         let today = cal.startOfDay(for: Date())
         guard let start = cal.date(byAdding: .day, value: -6, to: today) else { return }
-        fetchSum(from: start, to: Date()) { [weak self] v in
+        fetchSteps(from: start, to: Date()) { [weak self] v in
             Task { @MainActor [weak self] in self?.weekSteps = v }
         }
     }
@@ -201,7 +188,7 @@ final class StepViewModel: ObservableObject {
             let symbol  = cal.veryShortWeekdaySymbols[cal.component(.weekday, from: dayStart) - 1]
             let idx     = 6 - offset
             group.enter()
-            fetchSum(from: dayStart, to: min(dayEnd, Date())) { steps in
+            fetchSteps(from: dayStart, to: min(dayEnd, Date())) { steps in
                 lock.lock()
                 results.append((index: idx, day: DaySteps(
                     day: symbol, steps: steps,
@@ -213,7 +200,6 @@ final class StepViewModel: ObservableObject {
         group.notify(queue: .main) { [weak self] in
             guard let self else { return }
             self.weekDaily = results.sorted { $0.index < $1.index }.map { $0.day }
-            // Re-evaluate notifications now that weekDaily is populated
             NotificationManager.shared.evaluateAndSchedule(
                 todaySteps:    self.todaySteps,
                 yesterdaySteps: self.yesterdaySteps,
@@ -226,26 +212,19 @@ final class StepViewModel: ObservableObject {
     }
 
     // MARK: - Period fetch
-    private func fetchPeriod(_ component: Calendar.Component, completion: @escaping (Int) -> Void) {
-        guard let start = Calendar.current.dateInterval(of: component, for: Date())?.start else {
+    private func fetchPeriod(days: Int, completion: @escaping (Int) -> Void) {
+        guard let start = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
             completion(0); return
         }
-        fetchSum(from: start, to: Date(), completion: completion)
+        fetchSteps(from: start, to: Date(), completion: completion)
     }
 
-    // MARK: - Core HK query
-    private func fetchSum(from start: Date, to end: Date, completion: @escaping (Int) -> Void) {
-        let predicate = HKQuery.predicateForSamples(
-            withStart: start, end: end, options: .strictStartDate)
-        let query = HKStatisticsQuery(
-            quantityType: stepType,
-            quantitySamplePredicate: predicate,
-            options: .cumulativeSum
-        ) { _, stats, _ in
-            let count = Int(stats?.sumQuantity()?.doubleValue(for: .count()) ?? 0)
+    // MARK: - Core pedometer query
+    private func fetchSteps(from start: Date, to end: Date, completion: @escaping (Int) -> Void) {
+        pedometer.queryPedometerData(from: start, to: end) { data, error in
+            let count = data?.numberOfSteps.intValue ?? 0
             completion(count)
         }
-        healthStore.execute(query)
     }
 }
 
