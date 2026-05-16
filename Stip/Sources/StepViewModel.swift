@@ -34,16 +34,11 @@ final class StepViewModel: ObservableObject {
 
     init() {
         personalBest = UserDefaults.standard.integer(forKey: "stip.personalBest")
-        // Kick off authorization + data fetch on launch
+        // Check health auth status immediately so background delivery can be set up
         checkHealthKitAuthorizationStatus()
     }
 
-    // MARK: - Check existing auth (called on every launch)
-    // NOTE: authorizationStatus(for:) only reports WRITE authorization.
-    // For read-only types (steps), Apple always returns .notDetermined
-    // for privacy — we can never know if the user denied read access.
-    // The correct approach: always request auth, then try to fetch.
-    // If the fetch returns data, we're authorized.
+    // MARK: - Check existing auth (no dialog — called on every launch)
     func checkHealthKitAuthorizationStatus() {
         guard HKHealthStore.isHealthDataAvailable() else {
             authStatus = "unavailable"
