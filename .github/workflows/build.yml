@@ -53,6 +53,16 @@ jobs:
             exit 1
           fi
 
+      - name: Embed entitlements for sideloading
+        run: |
+          APP_PATH=$(find "$PWD/build" -name "*.app" -maxdepth 2 | head -1)
+          echo "Embedding entitlements into: $APP_PATH"
+          # AltStore/Sideloadly read this file to apply entitlements during re-signing
+          cp Stip/Stip.entitlements "$APP_PATH/archived-expanded-entitlements.xcent"
+          # Also embed as Stip.entitlements for tools that look for the original name
+          cp Stip/Stip.entitlements "$APP_PATH/Stip.entitlements"
+          echo "Entitlements embedded successfully"
+
       - name: Package into IPA
         run: |
           APP_PATH=$(find "$PWD/build" -name "*.app" -maxdepth 2 | head -1)
