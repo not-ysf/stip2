@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import SwiftUI
 
 @MainActor
 final class StepViewModel: ObservableObject {
@@ -84,14 +85,12 @@ final class StepViewModel: ObservableObject {
     // MARK: - Background Delivery
     private func setupBackgroundDelivery() {
         let query = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, completionHandler, error in
-            guard error == nil else {
-                completionHandler()
-                return
+            if error == nil {
+                Task { @MainActor [weak self] in
+                    self?.refreshAll()
+                }
             }
-            Task { @MainActor [weak self] in
-                self?.refreshAll()
-                completionHandler()
-            }
+            completionHandler()
         }
         healthStore.execute(query)
         
