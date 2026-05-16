@@ -34,52 +34,78 @@ final class StepViewModel: ObservableObject {
 
     init() {
         personalBest = UserDefaults.standard.integer(forKey: "stip.personalBest")
-        // Check health auth status immediately so background delivery can be set up
+        // Kick off authorization + data fetch on launch
         checkHealthKitAuthorizationStatus()
     }
 
-    // MARK: - Check existing auth (no dialog — called on every launch)
+    // MARK: - Check existing auth (called on every launch)
+    // NOTE: authorizationStatus(for:) only reports WRITE authorization.
+    // For read-only types (steps), Apple always returns .notDetermined
+    // for privacy — we can never know if the user denied read access.
+    // The correct approach: always request auth, then try to fetch.
+    // If the fetch returns data, we're authorized.
     func checkHealthKitAuthorizationStatus() {
         guard HKHealthStore.isHealthDataAvailable() else {
             authStatus = "unavailable"
             return
         }
-        let status = healthStore.authorizationStatus(for: stepType)
-        switch status {
-        case .sharingAuthorized:
-            // Already authorized — go straight to fetching
-            isAuthorized = true
-            authStatus = "authorized"
-            setupBackgroundDelivery()
-            refreshAll()
-        case .sharingDenied:
-            isAuthorized = false
-            authStatus = "denied"
-        default:
-            // notDetermined — show prompt
-            isAuthorized = false
-            authStatus = "notDetermined"
-            requestHealthKitAuthorization()
+        // Always request authorization — it's a no-op if already granted,
+        // and shows the dialog if not yet determined.
+        requestHealthKitAuthorization()
+    }
+
+    // MARK: - Request auth (shows the system dialog on first call)
+    func requestHealthKitAuthorization() {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            authStatus = "unavailable"
+            return
+        }
+        let readTypes: Set<HKObjectType> = [stepType]
+        healthStore.requestAuthorization(toShare: nil, read: readTypes) { [weak self] success, error in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let error = error {
+                    print("HealthKit auth error: \(error.localizedDescription)")
+                    self.authStatus = "denied"
+                    self.isAuthorized = false
+                    return
+                }
+                // requestAuthorization "success" only means the dialog was shown
+                // (or was already shown before). It does NOT mean the user tapped Allow.
+                // The only way to know if we can read is to actually try a fetch.
+                self.probeHealthKitAccess()
+            }
         }
     }
 
-    // MARK: - Request auth (shows the system dialog)
-    func requestHealthKitAuthorization() {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        // We need to read steps — must pass the type in the toShare set too for the
-        // authorization dialog to appear correctly even when only reading
-        let readTypes: Set<HKObjectType> = [stepType]
-        healthStore.requestAuthorization(toShare: [], read: readTypes) { [weak self] granted, error in
+    // MARK: - Probe fetch to verify read access
+    // Attempts a small fetch. If we get data (or at least no error), we're in.
+    private func probeHealthKitAccess() {
+        let cal   = Calendar.current
+        let start = cal.startOfDay(for: Date())
+        let predicate = HKQuery.predicateForSamples(
+            withStart: start, end: Date(), options: .strictStartDate)
+        let query = HKStatisticsQuery(
+            quantityType: stepType,
+            quantitySamplePredicate: predicate,
+            options: .cumulativeSum
+        ) { [weak self] _, stats, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.isAuthorized = granted
-                self.authStatus   = granted ? "authorized" : "denied"
-                if granted {
+                if error != nil {
+                    // Query failed — user likely denied access
+                    self.isAuthorized = false
+                    self.authStatus = "denied"
+                } else {
+                    // Query succeeded (stats may be nil if 0 steps, that's fine)
+                    self.isAuthorized = true
+                    self.authStatus = "authorized"
                     self.setupBackgroundDelivery()
                     self.refreshAll()
                 }
             }
         }
+        healthStore.execute(query)
     }
 
     // MARK: - Background Delivery
@@ -103,15 +129,7 @@ final class StepViewModel: ObservableObject {
 
     // MARK: - Refresh all data from HealthKit
     func refreshAll() {
-        // If not authorized yet, silently re-check status first
-        if !isAuthorized {
-            let status = healthStore.authorizationStatus(for: stepType)
-            if status == .sharingAuthorized {
-                isAuthorized = true
-            } else {
-                return
-            }
-        }
+        guard HKHealthStore.isHealthDataAvailable() else { return }
         fetchToday()
         fetchYesterday()
         fetchWeekTotal()
