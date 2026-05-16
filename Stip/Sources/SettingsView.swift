@@ -28,15 +28,15 @@ struct SettingsView: View {
                     }
                     .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 20)
 
-                    // ── Health ───────────────────────────────────────────
-                    sectionHeader("HEALTH")
+                    // ── Step Tracking ────────────────────────────────────
+                    sectionHeader("STEP TRACKING")
                     VStack(spacing: 0) {
                         // Status row
                         HStack(spacing: 14) {
-                            iconBox("heart.fill")
+                            iconBox("figure.walk")
                             VStack(alignment: .leading, spacing: 2) {
                                 HStack(spacing: 6) {
-                                    Text("Apple Health")
+                                    Text("Step Counter")
                                         .font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                                     Circle()
                                         .fill(vm.isAuthorized ? Color.white : Color.white.opacity(0.2))
@@ -49,18 +49,13 @@ struct SettingsView: View {
                             if !vm.isAuthorized {
                                 Button {
                                     if vm.authStatus == "denied" {
-                                        // Open Health app directly so user can enable Stip
-                                        if let url = URL(string: "x-apple-health://"),
-                                           UIApplication.shared.canOpenURL(url) {
-                                            UIApplication.shared.open(url)
-                                        } else {
-                                            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
-                                        }
+                                        // Open app settings so user can re-enable Motion & Fitness
+                                        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
                                     } else {
                                         vm.requestHealthKitAuthorization()
                                     }
                                 } label: {
-                                    Text(vm.authStatus == "denied" ? "Open Health" : "Connect")
+                                    Text(vm.authStatus == "denied" ? "Settings" : "Connect")
                                         .font(.system(size: 12, weight: .semibold)).foregroundColor(.black)
                                         .padding(.horizontal, 12).padding(.vertical, 6)
                                         .background(Capsule().fill(Color.white))
@@ -74,7 +69,7 @@ struct SettingsView: View {
                             Button { vm.refreshAll() } label: {
                                 HStack(spacing: 14) {
                                     iconBox("arrow.clockwise")
-                                    Text("Refresh from Health")
+                                    Text("Refresh Steps")
                                         .font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
                                     Spacer()
                                     Image(systemName: "chevron.right")
@@ -167,7 +162,7 @@ struct SettingsView: View {
                     VStack(spacing: 4) {
                         Text("Stip v1.0")
                             .font(.system(size: 12, weight: .light)).foregroundColor(.white.opacity(0.2))
-                        Text("Steps read directly from Apple Health")
+                        Text("Steps read directly from device sensors")
                             .font(.system(size: 11, weight: .ultraLight)).foregroundColor(.white.opacity(0.15))
                     }
                     .padding(.bottom, 120)
@@ -189,9 +184,9 @@ struct SettingsView: View {
     // MARK: - Helpers
     private var healthStatusText: String {
         switch vm.authStatus {
-        case "authorized":     return "Connected — reading steps from Health"
+        case "authorized":     return "Connected — reading steps from device"
         case "denied":         return "Denied — tap Settings to re-enable"
-        case "unavailable":    return "HealthKit not available on this device"
+        case "unavailable":    return "Step counting not available on this device"
         default:               return "Not connected — tap Connect to grant access"
         }
     }
