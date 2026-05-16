@@ -1,0 +1,269 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B001000A /* StipApp.swift */             = {isa = PBXBuildFile; fileRef = B001000B; };
+		B001000C /* ContentView.swift */         = {isa = PBXBuildFile; fileRef = B001000D; };
+		B001000E /* HomeView.swift */            = {isa = PBXBuildFile; fileRef = B001000F; };
+		B0010010 /* StatsView.swift */           = {isa = PBXBuildFile; fileRef = B0010011; };
+		B0010012 /* StreaksView.swift */         = {isa = PBXBuildFile; fileRef = B0010013; };
+		B0010014 /* SettingsView.swift */        = {isa = PBXBuildFile; fileRef = B0010015; };
+		B0010016 /* StepViewModel.swift */       = {isa = PBXBuildFile; fileRef = B0010017; };
+		B0010018 /* NotificationManager.swift */ = {isa = PBXBuildFile; fileRef = B0010019; };
+		B001001A /* StreakManager.swift */       = {isa = PBXBuildFile; fileRef = B001001B; };
+		B001001C /* DashboardCard.swift */       = {isa = PBXBuildFile; fileRef = B001001D; };
+		B001001E /* CircularProgressView.swift */= {isa = PBXBuildFile; fileRef = B001001F; };
+		B0010020 /* Assets.xcassets */           = {isa = PBXBuildFile; fileRef = B0010021; };
+		B0010022 /* HealthKit.framework */       = {isa = PBXBuildFile; fileRef = B0010023; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B001000B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StipApp.swift;             sourceTree = "<group>"; };
+		B001000D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift;         sourceTree = "<group>"; };
+		B001000F = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift;            sourceTree = "<group>"; };
+		B0010011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift;           sourceTree = "<group>"; };
+		B0010013 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreaksView.swift;         sourceTree = "<group>"; };
+		B0010015 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift;        sourceTree = "<group>"; };
+		B0010017 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepViewModel.swift;       sourceTree = "<group>"; };
+		B0010019 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		B001001B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakManager.swift;       sourceTree = "<group>"; };
+		B001001D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCard.swift;       sourceTree = "<group>"; };
+		B001001F = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift;sourceTree = "<group>"; };
+		B0010021 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets;        sourceTree = "<group>"; };
+		B0010023 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+		B0010030 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Stip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0010031 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Stip.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B0010040 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (B0010022,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B0010050 = { isa = PBXGroup; children = (B0010030,); name = Products; sourceTree = "<group>"; };
+		B0010051 = { isa = PBXGroup; children = (B0010023,); name = Frameworks; sourceTree = "<group>"; };
+		B0010052 = {
+			isa = PBXGroup;
+			children = (
+				B001000B, B001000D, B001000F, B0010011,
+				B0010013, B0010015, B0010017, B0010019,
+				B001001B, B001001D, B001001F,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		B0010053 = {
+			isa = PBXGroup;
+			children = (B0010052, B0010021, B0010031,);
+			path = Stip;
+			sourceTree = "<group>";
+		};
+		B0010000 = {
+			isa = PBXGroup;
+			children = (B0010053, B0010050, B0010051,);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B0010060 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0010070;
+			buildPhases = (B0010041, B0010040, B0010042,);
+			buildRules = ();
+			dependencies = ();
+			name = Stip;
+			productName = Stip;
+			productReference = B0010030;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B0010001 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = { B0010060 = { CreatedOnToolsVersion = 16.0; }; };
+			};
+			buildConfigurationList = B0010002;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = B0010000;
+			productRefGroup = B0010050;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (B0010060,);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B0010042 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (B0010020,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B0010041 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B001000A, B001000C, B001000E, B0010010,
+				B0010012, B0010014, B0010016, B0010018,
+				B001001A, B001001C, B001001E,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B0010003 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+			};
+			name = Debug;
+		};
+		B0010004 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = incremental;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B0010071 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Stip/Stip.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Stip reads your daily step count to track your 2,000-step goal and streak.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Stip does not write any health data.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = fetch;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stip.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B0010072 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Stip/Stip.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Stip reads your daily step count to track your 2,000-step goal and streak.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Stip does not write any health data.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = fetch;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stip.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B0010002 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (B0010003, B0010004);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B0010070 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (B0010071, B0010072);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = B0010001;
+}

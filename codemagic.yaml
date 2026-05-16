@@ -1,0 +1,52 @@
+workflows:
+  ios-sideload:
+    name: Stip – IPA for Sideloadly
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+
+    environment:
+      vars:
+        XCODE_PROJECT: "Stip.xcodeproj"
+        XCODE_SCHEME: "Stip"
+        BUNDLE_ID: "com.stip.app"
+      xcode: latest
+      cocoapods: default
+      # ← REMOVED the ios_signing block entirely
+
+    scripts:
+      - name: Set bundle ID
+        script: |
+          /usr/libexec/PlistBuddy -c \
+            "Set :CFBundleIdentifier $BUNDLE_ID" \
+            "$CM_BUILD_DIR/Stip/Info.plist" 2>/dev/null || true
+
+      - name: Build unsigned IPA
+        script: |
+          xcodebuild \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build \
+            CONFIGURATION_BUILD_DIR="$CM_BUILD_DIR/build"
+
+          # Package into IPA manually
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -r "$CM_BUILD_DIR/build/Stip.app" "$CM_BUILD_DIR/Payload/"
+          cd "$CM_BUILD_DIR"
+          zip -r output.ipa Payload
+
+    artifacts:
+      - output.ipa
+
+    publishing:
+      email:
+        recipients:
+          - yousifx745@gmail.com   # ← your actual email
+        notify:
+          success: true
+          failure: true
