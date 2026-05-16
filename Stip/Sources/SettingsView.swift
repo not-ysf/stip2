@@ -49,12 +49,18 @@ struct SettingsView: View {
                             if !vm.isAuthorized {
                                 Button {
                                     if vm.authStatus == "denied" {
-                                        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                                        // Open Health app directly so user can enable Stip
+                                        if let url = URL(string: "x-apple-health://"),
+                                           UIApplication.shared.canOpenURL(url) {
+                                            UIApplication.shared.open(url)
+                                        } else {
+                                            UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                                        }
                                     } else {
                                         vm.requestHealthKitAuthorization()
                                     }
                                 } label: {
-                                    Text(vm.authStatus == "denied" ? "Settings" : "Connect")
+                                    Text(vm.authStatus == "denied" ? "Open Health" : "Connect")
                                         .font(.system(size: 12, weight: .semibold)).foregroundColor(.black)
                                         .padding(.horizontal, 12).padding(.vertical, 6)
                                         .background(Capsule().fill(Color.white))
