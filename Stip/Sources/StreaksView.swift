@@ -92,11 +92,18 @@ struct StreaksView: View {
                 }
                 .padding(.top, 28)
 
-                Text("\(vm.streakCount)")
-                    .font(.system(size: 72, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.5), value: vm.streakCount)
+                if #available(iOS 16.0, *) {
+                    Text("\(vm.streakCount)")
+                        .font(.system(size: 72, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .contentTransition(.numericText())
+                        .animation(.easeInOut(duration: 0.5), value: vm.streakCount)
+                } else {
+                    Text("\(vm.streakCount)")
+                        .font(.system(size: 72, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .animation(.easeInOut(duration: 0.5), value: vm.streakCount)
+                }
 
                 Text(vm.streakCount == 1 ? "day streak" : "day streak")
                     .font(.system(size: 16, weight: .light))
