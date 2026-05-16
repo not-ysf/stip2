@@ -1,0 +1,77 @@
+name: Build Unsigned IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s $(ls -d /Applications/Xcode_16*.app | sort -V | tail -1)
+          xcodebuild -version
+
+      - name: Install Pillow
+        run: pip3 install Pillow --break-system-packages
+
+      - name: Generate assets from logo
+        run: python3 fix_assets.py
+
+      - name: Verify scheme visible
+        run: xcodebuild -project Stip.xcodeproj -list
+
+      - name: Build unsigned app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project Stip.xcodeproj \
+            -scheme Stip \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_STRICT_CONCURRENCY=minimal \
+            SWIFT_COMPILATION_MODE=incremental \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            CONFIGURATION_BUILD_DIR="$PWD/build" \
+            clean build 2>&1 | tee build.log
+          tail -40 build.log
+          if grep -q "BUILD FAILED" build.log; then
+            grep "error:" build.log || true
+            exit 1
+          fi
+
+      - name: Package into IPA
+        run: |
+          APP_PATH=$(find "$PWD/build" -name "*.app" -maxdepth 2 | head -1)
+          echo "App: $APP_PATH"
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r Stip.ipa Payload/
+          echo "IPA: $(du -sh Stip.ipa)"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stip-IPA
+          path: Stip.ipa
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
