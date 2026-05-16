@@ -19,7 +19,7 @@
 		B001001C /* DashboardCard.swift */       = {isa = PBXBuildFile; fileRef = B001001D; };
 		B001001E /* CircularProgressView.swift */= {isa = PBXBuildFile; fileRef = B001001F; };
 		B0010020 /* Assets.xcassets */           = {isa = PBXBuildFile; fileRef = B0010021; };
-		B0010022 /* HealthKit.framework */       = {isa = PBXBuildFile; fileRef = B0010023; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,7 +35,7 @@
 		B001001D = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCard.swift;       sourceTree = "<group>"; };
 		B001001F = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift;sourceTree = "<group>"; };
 		B0010021 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets;        sourceTree = "<group>"; };
-		B0010023 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
+
 		B0010030 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Stip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0010031 = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Stip.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -44,14 +44,14 @@
 		B0010040 = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
-			files = (B0010022,);
+			files = ();
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		B0010050 = { isa = PBXGroup; children = (B0010030,); name = Products; sourceTree = "<group>"; };
-		B0010051 = { isa = PBXGroup; children = (B0010023,); name = Frameworks; sourceTree = "<group>"; };
+		B0010051 = { isa = PBXGroup; children = (); name = Frameworks; sourceTree = "<group>"; };
 		B0010052 = {
 			isa = PBXGroup;
 			children = (
@@ -196,9 +196,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Stip reads your daily step count to track your 2,000-step goal and streak.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Stip does not write any health data.";
-				INFOPLIST_KEY_LSApplicationQueriesSchemes = ("x-apple-health");
+				INFOPLIST_KEY_NSMotionUsageDescription = "Stip uses your device's step counter to track your daily 2,000-step goal and streak.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = (fetch);
@@ -229,9 +227,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Stip reads your daily step count to track your 2,000-step goal and streak.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Stip does not write any health data.";
-				INFOPLIST_KEY_LSApplicationQueriesSchemes = ("x-apple-health");
+				INFOPLIST_KEY_NSMotionUsageDescription = "Stip uses your device's step counter to track your daily 2,000-step goal and streak.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = (fetch);
