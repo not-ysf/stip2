@@ -13,6 +13,12 @@ struct StipApp: App {
                 .onAppear {
                     // Ask for notification permission
                     NotificationManager.shared.requestPermission()
+                    // Request HealthKit access after a short delay
+                    // so the window is fully visible (iOS requires this
+                    // to present the Health authorization dialog)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        viewModel.checkHealthKitAuthorizationStatus()
+                    }
                 }
         }
     }
